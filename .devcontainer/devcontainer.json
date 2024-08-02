@@ -1,0 +1,33 @@
+{
+	"name": "Celes Challenge",
+	"dockerComposeFile": [
+		"../compose.yaml",
+		"compose.yaml"
+	],
+	"service": "app",
+	"workspaceFolder": "/app",
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"python.languageServer": "Pylance",
+				"python.testing.pytestEnabled": true,
+				"python.testing.cwd": "${workspaceFolder}/",
+				"[python]": {
+					"editor.formatOnSave": true,
+					"editor.codeActionsOnSave": {
+						"source.organizeImports": "explicit"
+					}
+				},
+				"files.autoSave": "afterDelay",
+				"files.autoSaveDelay": 1000
+			},
+			"extensions": [
+				"ms-python.python",
+				"mhutchie.git-graph",
+				"charliermarsh.ruff",
+				"tamasfe.even-better-toml",
+				"ms-azuretools.vscode-docker"
+			]
+		}
+	}
+}

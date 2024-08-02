@@ -1,0 +1,10 @@
+services:
+
+  app:
+    build: .
+    volumes:
+      - ./credentials.json:/app/credentials.json:ro
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
