@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("Datos Sintéticos")
 
 
-def generate_dataset() -> None:
+def main() -> None:
     config = Config()
     dataframes = []
 
@@ -45,4 +45,4 @@ def generate_dataframe(start_id: int, end_id: int, config: Config) -> pandas.Dat
 
 
 if __name__ == "__main__":
-    generate_dataset()
+    main()

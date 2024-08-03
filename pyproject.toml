@@ -2,7 +2,7 @@
 name = "celes-challenge"
 version = "0.1.0"
 description = "Data Engineer Challenge"
-requires-python = ">=3.12.0"
+requires-python = "==3.11.0"
 dependencies = [
     "google-cloud-storage",
     "numpy",
