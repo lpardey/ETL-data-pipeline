@@ -15,6 +15,7 @@ class Config(BaseModel):
     product_categories: list[str] = ["Moda", "Tecnología", "Belleza", "Salud", "Juguetes"]
     sale_regions: list[str] = ["Caribe", "Andina", "Pacífico", "Orinoquía", "Amazonía", "Insular"]
     random_number_generator: numpy.random.Generator = numpy.random.default_rng(12345)
+    csv_output_path:str = "dataset_preparation/dataset_base.csv"
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 

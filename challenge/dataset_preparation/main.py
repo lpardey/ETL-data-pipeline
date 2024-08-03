@@ -22,7 +22,7 @@ def main() -> None:
 
     final_dataframe = pandas.concat(dataframes)
     logger.info("Escribiendo datos...")
-    final_dataframe.to_csv("dataset_preparation/dataset_base.csv", index=False)
+    final_dataframe.to_csv(config.csv_output_path, index=False)
     logger.info("Datos generados y guardados exitosamente")
     logger.info(f"Registros iniciales:\n{final_dataframe.head()}")
 
