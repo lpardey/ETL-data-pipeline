@@ -4,6 +4,8 @@
 #
 #    pip-compile --output-file=requirements.txt pyproject.toml
 #
+annotated-types==0.7.0
+    # via pydantic
 cachetools==5.4.0
     # via google-auth
 certifi==2024.7.4
@@ -55,6 +57,10 @@ pyasn1==0.6.0
     #   rsa
 pyasn1-modules==0.4.0
     # via google-auth
+pydantic==2.8.2
+    # via celes-challenge (pyproject.toml)
+pydantic-core==2.20.1
+    # via pydantic
 python-dateutil==2.9.0.post0
     # via pandas
 pytz==2024.1
@@ -67,6 +73,10 @@ rsa==4.9
     # via google-auth
 six==1.16.0
     # via python-dateutil
+typing-extensions==4.12.2
+    # via
+    #   pydantic
+    #   pydantic-core
 tzdata==2024.1
     # via pandas
 urllib3==2.2.2
