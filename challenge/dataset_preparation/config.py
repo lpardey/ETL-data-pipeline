@@ -1,14 +1,17 @@
 import numpy
+import numpy.typing
 import pandas
 from pydantic import BaseModel, ConfigDict
 
-from .types import DateArray, IntArray, StrArray
+DateArray = numpy.typing.NDArray[numpy.datetime64]
+IntArray = numpy.typing.NDArray[numpy.int_]
+StrArray = numpy.typing.NDArray[numpy.str_]
 
 
 class Config(BaseModel):
-    num_records: int = 10_000_000
+    records: int = 10_000_000
     batch_size: int = 1_000_000
-    number_of_batches: int = num_records // batch_size
+    number_of_batches: int = records // batch_size
     dates_range: DateArray = pandas.date_range(start="2023-01-01", end="2023-12-31").to_numpy()
     product_categories: list[str] = ["Moda", "Tecnología", "Belleza", "Salud", "Juguetes"]
     sale_regions: list[str] = ["Caribe", "Andina", "Pacífico", "Orinoquía", "Amazonía", "Insular"]

@@ -2,15 +2,15 @@ import numpy
 import pandas
 
 from challenge.dataset_preparation.config import Config
-from challenge.dataset_preparation.generate_dataset import generate_dataframe_batch
+from challenge.dataset_preparation.generate_dataset import generate_dataframe
 
 
-def test_generate_dataframe_batch(mock_config: Config):
+def test_generate_dataframe(mock_config: Config):
     start_id = 1
     end_id = 6
     expected_ids = numpy.arange(start_id, end_id)
 
-    dataframe = generate_dataframe_batch(start_id, end_id, mock_config)
+    dataframe = generate_dataframe(start_id, end_id, mock_config)
 
     assert isinstance(dataframe, pandas.DataFrame)
     assert dataframe.shape[0] == 5
