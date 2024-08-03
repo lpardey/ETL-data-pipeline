@@ -4,6 +4,8 @@
 #
 #    pip-compile --extra=dev --output-file=requirements-dev.txt pyproject.toml
 #
+annotated-types==0.7.0
+    # via pydantic
 build==1.2.1
     # via pip-tools
 cachetools==5.4.0
@@ -47,12 +49,15 @@ numpy==2.0.1
     # via
     #   celes-challenge (pyproject.toml)
     #   pandas
+    #   pandas-stubs
     #   pyarrow
 packaging==24.1
     # via
     #   build
     #   pytest
 pandas==2.2.2
+    # via celes-challenge (pyproject.toml)
+pandas-stubs==2.2.2.240603
     # via celes-challenge (pyproject.toml)
 pip-tools==7.4.1
     # via celes-challenge (pyproject.toml)
@@ -73,6 +78,10 @@ pyasn1==0.6.0
     #   rsa
 pyasn1-modules==0.4.0
     # via google-auth
+pydantic==2.8.2
+    # via celes-challenge (pyproject.toml)
+pydantic-core==2.20.1
+    # via pydantic
 pyproject-hooks==1.1.0
     # via
     #   build
@@ -93,8 +102,13 @@ ruff==0.5.6
     # via celes-challenge (pyproject.toml)
 six==1.16.0
     # via python-dateutil
+types-pytz==2024.1.0.20240417
+    # via pandas-stubs
 typing-extensions==4.12.2
-    # via mypy
+    # via
+    #   mypy
+    #   pydantic
+    #   pydantic-core
 tzdata==2024.1
     # via pandas
 urllib3==2.2.2
