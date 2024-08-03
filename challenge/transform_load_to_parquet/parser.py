@@ -1,0 +1,33 @@
+import argparse
+
+from pydantic import BaseModel
+
+
+class GenerateParquetConfig(BaseModel):
+    input: str
+    output: str
+    partition_cols: list[str]
+    force: bool
+
+
+def get_parser() -> argparse.ArgumentParser:
+    description = "Este programa recibe archivos de texto plano y los transforma a formato Parquet"
+    partition_cols_help = "Nombres de columnas mediante las cuales se hará la partición del conjunto de datos. El comportamiento por defecto no realiza particiones"
+
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("-i", "--input", help="Archivo a transformar", type=str, required=True)
+    parser.add_argument("-o", "--output", help="Destino a escribir", type=str)
+    parser.add_argument("-p", "--partition-cols", help=partition_cols_help, nargs="*")
+    parser.add_argument("-f", "--force", help="Sobreescribir en destino", action="store_true", default=False)
+    return parser
+
+
+def get_config(argv: list[str] | None = None) -> GenerateParquetConfig:
+    parser = get_parser()
+    args = parser.parse_args(argv)
+    return GenerateParquetConfig(
+        input=args.input,
+        output=args.output,
+        partition_cols=args.partition_cols,
+        force=args.force,
+    )
