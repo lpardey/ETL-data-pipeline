@@ -9,8 +9,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("Lectura y consulta de archivos en GCS (Pandas)")
 
 
-def main() -> None:
-    config = get_config()
+def main(argv: list[str] | None = None) -> None:
+    config = get_config(argv)
 
     try:
         logger.info("Leyendo archivos...")

@@ -11,12 +11,13 @@ class Config(BaseModel):
 
 
 def get_parser() -> argparse.ArgumentParser:
+    prog = "Carga y transformación a Parquet"
     description = "Este programa recibe archivos de texto plano y los transforma a formato Parquet"
     partition_cols_help = "Nombres de columnas mediante las cuales se hará la partición del conjunto de datos. El comportamiento por defecto no realiza particiones"
 
-    parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("-i", "--input", help="Archivo a transformar", type=str, required=True)
-    parser.add_argument("-o", "--output", help="Destino a escribir", type=str, default=".")
+    parser = argparse.ArgumentParser(prog=prog, description=description)
+    parser.add_argument("input", type=str, help="Archivo a transformar")
+    parser.add_argument("-o", "--output", type=str, help="Destino a escribir", default=".")
     parser.add_argument("-p", "--partition-cols", help=partition_cols_help, nargs="*")
     parser.add_argument("-f", "--force", help="Sobreescribir en destino", action="store_true", default=False)
     return parser
