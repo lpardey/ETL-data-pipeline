@@ -3,26 +3,26 @@ from types import ModuleType
 import matplotlib.pyplot
 import numpy
 
-from . import main_dask, main_pandas
+from . import main_dask, main_pandas, main_pyspark
 
 
 def main() -> None:
     pandas_results = get_results(main_pandas)
     dask_results = get_results(main_dask)
+    pyspark_results = get_results(main_pyspark, path="gs://celes_single")
 
-    frameworks = ("Pandas", "Dask")
+    frameworks = ("Pandas", "Dask", "Pyspark")
 
     framework_times = {
-        "Lectura": (pandas_results[0], dask_results[0]),
-        "Procesamiento": (pandas_results[1], dask_results[1]),
-        "Total": (pandas_results[2], dask_results[2]),
+        "Lectura": (pandas_results[0], dask_results[0], pyspark_results[0]),
+        "Procesamiento": (pandas_results[1], dask_results[1], pyspark_results[1]),
+        "Total": (pandas_results[2], dask_results[2], pyspark_results[2]),
     }
 
     # Label locations
     x = numpy.arange(len(frameworks))
     width = 0.25  # the width of the bars
     multiplier = 0
-
     fig, ax = matplotlib.pyplot.subplots(layout="constrained")
 
     for attribute, measurement in framework_times.items():
@@ -36,8 +36,9 @@ def main() -> None:
     ax.set_title("Benchmark: lectura, ordenamiento y aggregación")
     ax.set_xticks(x + width, frameworks)
     ax.legend(loc="upper left", ncols=3)
-    ax.set_ylim(0, 60)
-    matplotlib.pyplot.show()
+    ax.set_ylim(0, 80)
+
+    matplotlib.pyplot.savefig("single.png")
 
 
 def get_results(module: ModuleType, path: str = "gcs://celes_single") -> tuple[float, float, float]:
