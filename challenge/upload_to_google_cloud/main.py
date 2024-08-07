@@ -21,10 +21,10 @@ def main(argv: list[str] | None = None) -> None:
         logger.info(f"Iniciando carga de archivos al gcs bucket '{bucket.name}'")
         upload_files_to_gcs(bucket, config)
     except FileNotFoundError:
-        logger.error(f"El directorio '{config.directory}' no existe")
+        logger.exception(f"El directorio '{config.directory}' no existe")
         sys.exit(1)
     except Exception as e:
-        logger.error(f"Ocurrió un error inesperado: {e}")
+        logger.exception(f"Ocurrió un error inesperado: {e}")
         sys.exit(1)
 
 
@@ -40,34 +40,34 @@ def get_or_create_bucket(client: Client, bucket_name: str) -> Bucket:
 
 def upload_files_to_gcs(bucket: Bucket, config: Config) -> None:
     source_dir_path_obj = Path(config.directory)
-    paths = list(source_dir_path_obj.rglob("*"))
+    paths = source_dir_path_obj.rglob("*")
+    file_paths = [path for path in paths if path.is_file() and path.suffix == ".parquet"]
 
-    if not paths:
+    if not file_paths:
         raise FileNotFoundError
 
-    if len(paths) == 1:
-        file_path_obj = paths[0]
+    if len(file_paths) == 1:
+        file_path_obj = file_paths[0]
         blob_name = f"{file_path_obj.name}" if config.blob_name is None else config.blob_name
         blob = bucket.blob(blob_name)
         blob.upload_from_filename(str(file_path_obj), if_generation_match=0)
         logger.info(f"Archivo '{blob_name}' cargado exitosamente.")
+        return
 
-    else:
-        file_paths = [path for path in paths if path.is_file() and path.suffix == ".parquet"]
-        filenames = [str(path.relative_to(config.directory)) for path in file_paths]
-        logger.info(f"Se encontraron {len(filenames)} archivos a cargar")
-        # Uploads multiple objects concurrently
-        results = transfer_manager.upload_many_from_filenames(
-            bucket=bucket,
-            filenames=filenames,
-            source_directory=config.directory,
-            max_workers=config.workers,
-        )
-        for name, result in zip(filenames, results):
-            if isinstance(result, Exception):
-                logger.warning(f"Error al cargar archivo '{name}': {result}")
-            else:
-                logger.info(f"Archivo '{name}' cargado exitosamente.")
+    filenames = [str(path.relative_to(config.directory)) for path in file_paths]
+    logger.info(f"Se encontraron {len(filenames)} archivos a cargar")
+    # Uploads multiple objects concurrently
+    results = transfer_manager.upload_many_from_filenames(
+        bucket=bucket,
+        filenames=filenames,
+        source_directory=config.directory,
+        max_workers=config.workers,
+    )
+    for name, result in zip(filenames, results):
+        if isinstance(result, Exception):
+            logger.warning(f"Error al cargar archivo '{name}': {result}")
+        else:
+            logger.info(f"Archivo '{name}' cargado exitosamente.")
 
 
 if __name__ == "__main__":

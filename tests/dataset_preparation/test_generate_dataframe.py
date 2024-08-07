@@ -1,8 +1,7 @@
 import numpy
 import pandas
 
-from challenge.dataset_preparation.config import Config
-from challenge.dataset_preparation.main import generate_dataframe
+from challenge.dataset_preparation.main import Config, generate_dataframe
 
 
 def test_generate_dataframe(mock_config: Config):

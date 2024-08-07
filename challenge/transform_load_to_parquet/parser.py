@@ -17,7 +17,7 @@ def get_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(prog=prog, description=description)
     parser.add_argument("input", type=str, help="Archivo a transformar")
-    parser.add_argument("-o", "--output", type=str, help="Destino a escribir", default=".")
+    parser.add_argument("-o", "--output", type=str, help="Destino a escribir", default="./parquet")
     parser.add_argument("-p", "--partition-cols", help=partition_cols_help, nargs="*")
     parser.add_argument("-f", "--force", help="Sobreescribir en destino", action="store_true", default=False)
     return parser

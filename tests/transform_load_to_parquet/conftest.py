@@ -16,7 +16,7 @@ def output_temp(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def argv(output_temp: Path) -> list[str]:
-    return ["-i", CSV_MOCK_PATH, "-o", str(output_temp), "-p", "region_de_venta"]
+    return [CSV_MOCK_PATH, "-o", str(output_temp), "-p", "region_de_venta"]
 
 
 @pytest.fixture
