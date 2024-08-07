@@ -3,6 +3,13 @@
 Este repositorio contiene la solución a la prueba técnica para el equipo de Data Engineers en Celes.  
 La prueba técnica se compone de cinco partes cuyo objetivo es demostrar las habilidades específicas en el manejo y procesamiento de datos a gran escala utilizando Python y Google Cloud Platform.
 
+## Inicio
+El proyecto tiene toda la configuración necesaria para funcionar directamente en vscode + devcontainers.  
+Para ello, primero es necesario guardar un archivo de credenciales `credentials.json` en el directorio raíz del repositorio.  
+Una vez hecho esto, se pueden seguir los pasos habituales para construir la imagen de docker para devcontainer y ejecutar los scripts según se indica más abajo.
+
+En la carpeta `resources` hay unas [credenciales](./resources/read_only_credentials.json) dedicadas para este proceso de selección, con acceso de sólo lectura al bucket. Para poder ejecutar al completo todos los scripts, sería recomendable crear una cuenta de prueba y dar acceso completo a un bucket dedicado.
+
 ## Contenido
 
 1. [Parte 1: Preparación de Datos Sintéticos](#parte-1-preparación-de-datos-sintéticos)
@@ -12,19 +19,19 @@ La prueba técnica se compone de cinco partes cuyo objetivo es demostrar las hab
 5. [Parte 5: Documentación y Arquitectura](#parte-5-documentación-y-arquitectura)
 6. [Conclusiones](#conclusiones)
 
-
 ## Parte 1: Preparación de Datos Sintéticos
 
 En esta etapa, se generó un dataset sintético de 10 millones de registros. Los datos incluyen los siguientes campos: id_cliente, fecha_de_transacción, cantidad_de_venta, categoria_de_producto y region_de_venta.
 
-Se utilizan las librerías `numpy` y `pandas` para facilitar la generación y manejo de los datos, además de `pydantic` para estructurar parte de la información con validación de tipado. Dada la cantidad de registros a producir, se optó separar su generación en lotes de 1 millón de registros para optimizar el uso de memoria y mejorar la eficiencia. Cada lote se almacena en un DataFrame de pandas. Una vez generados todos los lotes, los DataFrames se concatenan en un único DataFrame final, que luego se guarda en un archivo CSV. La configuración del programa se maneja a través de una clase Config que permite definir parámetros esenciales como el número de registros, el tamaño de los lotes, y las categorías de datos. 
+Se utilizan las librerías `numpy` y `pandas` para facilitar la generación y manejo de los datos. Dada la cantidad de registros a producir, se optó por separar su generación en lotes de 1 millón de registros. Cada lote se almacena en un DataFrame de pandas. Una vez generados todos los lotes, los DataFrames se concatenan en un único DataFrame final, que luego se guarda en un archivo CSV. La configuración del programa se maneja a través de una clase Config que permite definir parámetros esenciales como el número de registros, el tamaño de los lotes, y las categorías de datos. 
 
 ## Parte 2: Carga y Transformación de Datos
 
-Se desarrolló un script para leer los datos generados desde archivos planos (CSV) y transformarlos al formato Parquet. Para este proceso, se utilizó `pyarrow` para el tratamiento general del archivo y `argparse` para definir y parsear argumentos de línea de comandos. El script permite especificar varios parámetros a través de argumentos de línea de comandos, tales como el archivo de entrada, el destino de salida, las columnas de partición, y si se debe forzar la sobreescritura de archivos existentes.
+Se desarrolló un script para leer los datos generados desde archivos planos (CSV) y transformarlos al formato Parquet. Para este proceso, se utilizó `pyarrow` para el tratamiento general del archivo. El script permite especificar varios parámetros a través de argumentos de línea de comandos, tales como el archivo de entrada, el destino de salida, las columnas de partición, y si se debe forzar la sobreescritura de archivos existentes.
 
 Ejemplo de uso:
 ```
+# ejecutando desde challenge/
 python -m transform_load_to_parquet.main.py mi_dataset.csv -o mi_parquet_output -p region_de_venta -f
 ```
 
@@ -34,12 +41,29 @@ Se implementó un script que permite la carga de archivos en formato Parquet a u
 
 Ejemplo de uso:
 ```
+# ejecutando desde challenge/
 python -m upload_to_google_cloud.main mi_parquet_output -n mi_bucket -w 8
 ```
 
 ## Parte 4: Lectura y Agregación de Datos
 
-En esta sección se implementaron tres scripts para leer los archivos Parquet almacenados en GCP y realizar operaciones de ordenamiento y agregación de datos, como sumas totales por categoría de producto y promedios de ventas por región. `Pandas`, `Dask` y `Pyspark` fueron la librerías escogidas para cada implementación.
+En esta sección se implementaron tres scripts para leer los archivos Parquet almacenados en GCS y realizar operaciones de ordenamiento y agregación de datos, como sumas totales por categoría de producto y promedios de ventas por región. [`Pandas`](./challenge/read_and_aggregate/main_pandas.py), [`Dask`](./challenge/read_and_aggregate/main_dask.py) y [`Pyspark`](./challenge/read_and_aggregate/main_pyspark.py) fueron la librerías escogidas para cada implementación.
+
+Ejemplo de uso:
+```
+# ejecutando desde challenge/ usando pandas
+python -m read_and_aggregate.main_pandas gcs://celes_single
+```
+
+### Archivo único
+![Archivo único](./resources/single.png) 
+
+### Archivo particionado
+![Archivo particionado](./resources/partition.png)
+
+A simple vista la implementación con pandas es superior en todos los aspectos. Considerando que el tamaño de la fuente de datos es pequeño (105.6 MB para el archivo único y 120 MB para el archivo particionado), se podría decir que este resultado se debe a que pandas es eficiente en el manejo de conjuntos de datos que caben en la memoria del sistema. Por otro lado, aunque pyspark es óptimo para el procesamiento distribuido de grandes volúmenes de datos, el tamaño de la fuente de datos no es suficientemente grande para justificar el costo de inicialización y administración de una sesión de Spark, lo que puede resultar en tiempos más largos comparados con pandas. Finalmente, a pesar de que Dask es una extensión de pandas diseñada para operaciones paralelas y en entornos de memoria limitada, introduce una sobrecarga en la administración de tareas paralelas.
+
+En conclusión, para la manipulación de un conjundo de grandes vólumenes de datos, pyspark debería ser una de las opciones a utilizar. Por otra parte, con datasets que caben en memoria el uso de pandas es la mejor opción.
 
 ## Parte 5: Documentación y Arquitectura
 
