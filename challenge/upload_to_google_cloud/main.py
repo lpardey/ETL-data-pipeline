@@ -1,5 +1,4 @@
 import logging
-import random
 import sys
 from pathlib import Path
 
@@ -9,7 +8,7 @@ from google.cloud.storage import Bucket, Client, transfer_manager  # type: ignor
 from .parser import Config, get_config
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("Carga a Google Cloud Storage")
+logger = logging.getLogger("Carga a GCS")
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -19,8 +18,8 @@ def main(argv: list[str] | None = None) -> None:
         client = Client()
         logger.info("Obteniendo bucket para carga de archivos...")
         bucket = get_or_create_bucket(client, config.bucket_name)
-        logger.info(f"Iniciando carga de archivos al gcs bucket {bucket.name}")
-        upload_files_to_gcs(bucket, config.directory)
+        logger.info(f"Iniciando carga de archivos al gcs bucket '{bucket.name}'")
+        upload_files_to_gcs(bucket, config)
     except FileNotFoundError:
         logger.error(f"El directorio '{config.directory}' no existe")
         sys.exit(1)
@@ -47,11 +46,11 @@ def upload_files_to_gcs(bucket: Bucket, config: Config) -> None:
         raise FileNotFoundError
 
     if len(paths) == 1:
-        filename = str(paths[0])
-        blob_name = f"my_blob_{random.randrange(1000, 2000)}" if config.blob_name is None else config.blob_name
+        file_path_obj = paths[0]
+        blob_name = f"{file_path_obj.name}" if config.blob_name is None else config.blob_name
         blob = bucket.blob(blob_name)
-        blob.upload_from_filename(filename, if_generation_match=0)
-        logger.info(f"Archivo '{filename}' cargado al bucket '{bucket.name}'.")
+        blob.upload_from_filename(str(file_path_obj), if_generation_match=0)
+        logger.info(f"Archivo '{blob_name}' cargado exitosamente.")
 
     else:
         file_paths = [path for path in paths if path.is_file() and path.suffix == ".parquet"]
@@ -68,7 +67,7 @@ def upload_files_to_gcs(bucket: Bucket, config: Config) -> None:
             if isinstance(result, Exception):
                 logger.warning(f"Error al cargar archivo '{name}': {result}")
             else:
-                logger.info(f"Archivo '{name}' cargado al bucket '{bucket.name}'.")
+                logger.info(f"Archivo '{name}' cargado exitosamente.")
 
 
 if __name__ == "__main__":
