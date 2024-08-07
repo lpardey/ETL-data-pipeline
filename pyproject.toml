@@ -9,6 +9,10 @@ dependencies = [
     "pandas",
     "pyarrow",
     "pydantic",
+    "dask[complete]",
+    "gcsfs",
+    "matplotlib",
+    "pyspark[sql]",
 ]
 
 [project.optional-dependencies]

@@ -2,8 +2,10 @@ FROM python:3.11 AS base
 
 WORKDIR /app
 
-# Google cloud credentials
 RUN apt update -y && \
+    # Java OpenJDK for Pyspark
+    apt install -y openjdk-17-jre && \
+    # Google cloud credentials
     apt install -y apt-transport-https ca-certificates gnupg curl
 # Add the gcloud CLI distribution URI as a package source:
 RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
