@@ -1,79 +1,49 @@
 import logging
-import sys
-import time
 
-from pyspark.sql import SparkSession, functions
+from pyspark.sql import DataFrame, SparkSession, functions
 
-from .parser import get_config
+from .common import Processor, main
 
-SCRIPT_NAME = "Lectura y consulta de archivos en GCS (Pyspark)"
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(SCRIPT_NAME)
+logger = logging.getLogger("SparkProcessor")
 
 
-def main(argv: list[str] | None = None) -> None:
-    config = get_config(argv)
+class SparkProcessor(Processor):
+    def __init__(self, path: str) -> None:
+        super().__init__(path)
+        self.spark: SparkSession = (
+            SparkSession.builder.appName("SparkProcessor")
+            .config("spark.jars", "https://storage.googleapis.com/hadoop-lib/gcs/gcs-connector-hadoop3-latest.jar")
+            .config("spark.sql.repl.eagerEval.enabled", True)
+            .getOrCreate()
+        )
+        self.data = None
 
-    try:
+    def read(self) -> DataFrame:
         logger.info("Leyendo archivos...")
-        spark = get_spark_session()
         required_cols = ["categoria_de_producto", "cantidad_de_venta", "region_de_venta"]
-        dataframe = spark.read.parquet(config.path).select(required_cols)
+        dataframe = self.spark.read.parquet(self.path).select(required_cols)
         logger.info("Lectura terminada.")
+        self.data = dataframe
+        dataframe.show()
         dataframe.cache()
+        return dataframe
+
+    def process(self, data: DataFrame) -> None:
         logger.info("Procesando información...")
-        df_grouped_by_category = dataframe.groupBy("categoria_de_producto")
+        df_grouped_by_category = data.groupBy("categoria_de_producto")
         total_sales_by_category = df_grouped_by_category.agg(functions.sum("cantidad_de_venta").alias("venta_total"))
-        df_grouped_by_region = dataframe.groupBy("region_de_venta")
+        df_grouped_by_region = data.groupBy("region_de_venta")
         average_sales_by_region = df_grouped_by_region.agg(functions.mean("cantidad_de_venta").alias("venta_promedio"))
         logger.info("Información procesada.")
         logger.info(f"Total de ventas por categoría de producto:\n{total_sales_by_category}")
         logger.info(f"Promedio de ventas por región:\n{average_sales_by_region}")
-        dataframe.unpersist()
-        spark.stop()
-    except Exception as e:
-        logger.error(f"Ocurrió un error inesperado: {e}")
-        sys.exit(1)
 
-
-def load_time(path: str) -> float:
-    start_load = time.time()
-    spark = get_spark_session()
-    required_cols = ["categoria_de_producto", "cantidad_de_venta", "region_de_venta"]
-    dataframe = spark.read.parquet(path).select(required_cols)
-    dataframe.cache()
-    end_load = time.time()
-    spark.stop()
-    load_time = end_load - start_load
-    return load_time
-
-
-def processing_time(path: str) -> float:
-    spark = get_spark_session()
-    required_cols = ["categoria_de_producto", "cantidad_de_venta", "region_de_venta"]
-    dataframe = spark.read.parquet(path).select(required_cols)
-    dataframe.cache()
-    start_processing = time.time()
-    df_grouped_by_category = dataframe.groupBy("categoria_de_producto")
-    df_grouped_by_category.agg(functions.sum("cantidad_de_venta").alias("venta_total"))
-    df_grouped_by_region = dataframe.groupBy("region_de_venta")
-    df_grouped_by_region.agg(functions.mean("cantidad_de_venta").alias("venta_promedio"))
-    end_processing = time.time()
-    dataframe.unpersist()
-    spark.stop()
-    processing_time = end_processing - start_processing
-    return processing_time
-
-
-def get_spark_session() -> SparkSession:
-    spark: SparkSession = (
-        SparkSession.builder.appName(SCRIPT_NAME)
-        .config("spark.jars", "https://storage.googleapis.com/hadoop-lib/gcs/gcs-connector-hadoop3-latest.jar")
-        .config("spark.sql.repl.eagerEval.enabled", True)
-        .getOrCreate()
-    )
-    return spark
+    def cleanup(self) -> None:
+        if self.data is not None:
+            self.data.unpersist()
+        self.spark.stop()
 
 
 if __name__ == "__main__":
-    main()
+    main(SparkProcessor)

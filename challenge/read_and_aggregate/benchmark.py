@@ -1,15 +1,14 @@
-from types import ModuleType
-
 import matplotlib.pyplot
 import numpy
 
 from . import main_dask, main_pandas, main_pyspark
+from .common import Processor
 
 
 def main() -> None:
-    pandas_results = get_results(main_pandas)
-    dask_results = get_results(main_dask)
-    pyspark_results = get_results(main_pyspark, path="gs://celes_single")
+    pandas_results = get_results(main_pandas.PandasProcessor, path="gcs://celes_partition")
+    dask_results = get_results(main_dask.DaskProcessor, path="gcs://celes_partition")
+    pyspark_results = get_results(main_pyspark.SparkProcessor, path="gs://celes_partition")
 
     frameworks = ("Pandas", "Dask", "Pyspark")
 
@@ -38,14 +37,14 @@ def main() -> None:
     ax.legend(loc="upper left", ncols=3)
     ax.set_ylim(0, 80)
 
-    matplotlib.pyplot.savefig("single.png")
+    matplotlib.pyplot.savefig("partition.png")
 
 
-def get_results(module: ModuleType, path: str = "gcs://celes_single") -> tuple[float, float, float]:
-    load_time = module.load_time(path)
-    proccesing_time = module.processing_time(path)
-    total_time = load_time + proccesing_time
-    return (load_time, proccesing_time, total_time)
+def get_results(processor_class: type[Processor], path: str) -> tuple[float, float, float]:
+    processor = processor_class(path)
+    processor.run()
+    times = processor.read_time, processor.process_time
+    return *times, sum(times)
 
 
 if __name__ == "__main__":

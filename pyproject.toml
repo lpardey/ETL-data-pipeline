@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["mypy", "pandas-stubs", "pip-tools", "pytest", "ruff"]
+dev = ["mypy", "pandas-stubs", "pyarrow-stubs", "pip-tools", "pytest", "ruff"]
 
 [project.urls]
 Repository = "https://github.com/lpardey/celes-challenge"
