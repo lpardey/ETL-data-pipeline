@@ -23,7 +23,7 @@ class Config(BaseModel):
     batch_size: int = 1_000_000
     workers: int = 3
     rng_seed: int = 12345
-    csv_output_path: str = "challenge/dataset_preparation/dataset_improved6.csv"
+    csv_output_path: str = "challenge/dataset_preparation/dataset_improved.csv"
     log_level: int = logging.INFO
 
     @cached_property
