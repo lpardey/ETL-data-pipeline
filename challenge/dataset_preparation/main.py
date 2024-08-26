@@ -23,7 +23,7 @@ class Config(BaseModel):
     batch_size: int = 1_000_000
     workers: int = 3
     rng_seed: int = 12345
-    csv_output_path: str = "challenge/dataset_preparation/dataset_improved.csv"
+    csv_output_path: str = "challenge/dataset_preparation/dataset.csv"
     log_level: int = logging.INFO
 
     @cached_property
@@ -45,13 +45,13 @@ class DataframeConfig(BaseModel):
     seed: int
 
 
-def main() -> None:
+def main(config: Config | None = None) -> None:
     """
     Generates and saves synthetic data to a CSV file.
     This function uses multiprocessing to generate data in parallel, which may result in the saved data being unordered.
     The generated data is written to the specified CSV file path.
     """
-    config = Config()
+    config = config or Config()
     logging.basicConfig(level=config.log_level)
 
     with (
