@@ -13,6 +13,7 @@ dependencies = [
     "gcsfs",
     "matplotlib",
     "pyspark[sql]",
+    "polars",
 ]
 
 [project.optional-dependencies]
