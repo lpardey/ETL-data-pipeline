@@ -4,13 +4,12 @@ import polars as pl
 import pytest
 
 from challenge.dataset_preparation.main import FIELDS, Config, main
-
-from .conftest import EXPECTED_OUTPUT_FILE
+from tests.conftest import DATASET
 
 
 def test_main_success(mock_config: Config):
     id_field = FIELDS[0]
-    expected_result_df = pl.read_csv(EXPECTED_OUTPUT_FILE).sort(by=id_field)
+    expected_result_df = pl.read_csv(DATASET).sort(by=id_field)
 
     main(mock_config)
     result_df = pl.read_csv(mock_config.csv_output_path).sort(by=id_field)
