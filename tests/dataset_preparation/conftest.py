@@ -4,8 +4,6 @@ import pytest
 
 from challenge.dataset_preparation.main import Config
 
-EXPECTED_OUTPUT_FILE = Path(__file__).parent / "expected_output.csv"
-
 
 @pytest.fixture
 def mock_config(tmp_path: Path) -> Config:
