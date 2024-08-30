@@ -22,5 +22,6 @@ def test_main_success(mock_config: Config):
 
 @patch("challenge.dataset_preparation.main.write_content", retun_value=Exception("Test Error"))
 def test_main_fail(_, mock_config: Config):
-    with pytest.raises(SystemExit):
+    with pytest.raises(SystemExit) as exc:
         main(mock_config)
+    assert exc.value.code == 1
