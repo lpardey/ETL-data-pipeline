@@ -1,22 +1,32 @@
 import argparse
+from pathlib import Path
 
 from pydantic import BaseModel
 
 
 class Config(BaseModel):
-    directory: str
+    directory: Path
     bucket_name: str
     blob_name: str | None
     workers: int
 
 
 def get_parser() -> argparse.ArgumentParser:
-    description = "Script para cargar archivos parquet a Google Cloud Storage"
-    parser = argparse.ArgumentParser(prog="Carga a GCS", description=description)
-    parser.add_argument("directory", type=str, help="Ruta de directorio con archivos a cargar")
-    parser.add_argument("-n", "--bucket-name", type=str, help="Nombre del bucket", required=True)
-    parser.add_argument("--blob-name", type=str, help="Nombre del archivo único a cargar (opcional)")
-    parser.add_argument("-w", "--workers", type=int, help="Numero de trabajadores", default=8)
+    description = "Upload Parquet files to Google Cloud Storage"
+    parser = argparse.ArgumentParser(prog="Upload to GCS", description=description)
+    directory_help = "Path to the directory containing Parquet files to be uploaded."
+    bucket_name_help = (
+        "Name of the Google Cloud Storage bucket. If the bucket doesn't exist, it will be created automatically."
+    )
+    blob_name_help = (
+        "Optional name for the blob (file) in the bucket. If not specified, the original file names will be used."
+    )
+    max_workers_help = "Number of concurrent workers to use for uploading files. Default is 8."
+
+    parser.add_argument("directory", type=Path, help=directory_help)
+    parser.add_argument("bucket_name", type=str, help=bucket_name_help)
+    parser.add_argument("--blob-name", type=str, help=blob_name_help)
+    parser.add_argument("-w", "--workers", type=int, help=max_workers_help, default=8)
     return parser
 
 

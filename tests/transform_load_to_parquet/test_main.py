@@ -32,5 +32,11 @@ def test_main_fail(m_process_using_pyarrow: Mock, m_process_using_polars: Mock, 
     else:
         m_process_using_polars.side_effect = side_effect
 
-    with pytest.raises(SystemExit):
+    with pytest.raises(SystemExit) as exc:
         main(argv)
+
+    if "-e" in argv:
+        m_process_using_pyarrow.assert_called_once()
+    else:
+        m_process_using_polars.assert_called_once()
+    assert exc.value.code == 1
