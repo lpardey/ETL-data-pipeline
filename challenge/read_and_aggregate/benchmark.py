@@ -1,28 +1,28 @@
-import matplotlib.pyplot
-import numpy
+import matplotlib.pyplot as plt
+import numpy as np
 
 from . import main_dask, main_pandas, main_pyspark
 from .common import Processor
 
+GCS_PATH = "gs://single_file"
+FILENAME = "single.png"
+FRAMEWORKS = ("Pandas", "Dask", "Pyspark")
+
 
 def main() -> None:
-    pandas_results = get_results(main_pandas.PandasProcessor, path="gcs://celes_partition")
-    dask_results = get_results(main_dask.DaskProcessor, path="gcs://celes_partition")
-    pyspark_results = get_results(main_pyspark.SparkProcessor, path="gs://celes_partition")
+    pandas_results = get_results(main_pandas.PandasProcessor, path=GCS_PATH)
+    dask_results = get_results(main_dask.DaskProcessor, path=GCS_PATH)
+    pyspark_results = get_results(main_pyspark.SparkProcessor, path=GCS_PATH)
 
-    frameworks = ("Pandas", "Dask", "Pyspark")
-
-    framework_times = {
-        "Lectura": (pandas_results[0], dask_results[0], pyspark_results[0]),
-        "Procesamiento": (pandas_results[1], dask_results[1], pyspark_results[1]),
-        "Total": (pandas_results[2], dask_results[2], pyspark_results[2]),
-    }
+    keys = ("Reading", "Processing", "Total")
+    values = zip(pandas_results, dask_results, pyspark_results)
+    framework_times = dict(zip(keys, values))
 
     # Label locations
-    x = numpy.arange(len(frameworks))
+    x = np.arange(len(FRAMEWORKS))
     width = 0.25  # the width of the bars
     multiplier = 0
-    fig, ax = matplotlib.pyplot.subplots(layout="constrained")
+    fig, ax = plt.subplots(layout="constrained")
 
     for attribute, measurement in framework_times.items():
         offset = width * multiplier
@@ -31,20 +31,20 @@ def main() -> None:
         multiplier += 1
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
-    ax.set_ylabel("Tiempo (segundos)")
-    ax.set_title("Benchmark: lectura, ordenamiento y aggregación")
-    ax.set_xticks(x + width, frameworks)
+    ax.set_ylabel("Time (seconds)")
+    ax.set_title("Benchmark: read and aggregat")
+    ax.set_xticks(x + width, FRAMEWORKS)
     ax.legend(loc="upper left", ncols=3)
     ax.set_ylim(0, 80)
 
-    matplotlib.pyplot.savefig("partition.png")
+    plt.savefig(FILENAME)
 
 
 def get_results(processor_class: type[Processor], path: str) -> tuple[float, float, float]:
     processor = processor_class(path)
     processor.run()
     times = processor.read_time, processor.process_time
-    return *times, sum(times)
+    return *times, float(sum(times))
 
 
 if __name__ == "__main__":

@@ -17,27 +17,26 @@ class SparkProcessor(Processor):
             .config("spark.sql.repl.eagerEval.enabled", True)
             .getOrCreate()
         )
-        self.data = None
+        self.data: DataFrame | None = None
 
     def read(self) -> DataFrame:
-        logger.info("Leyendo archivos...")
+        logger.info("Reading files...")
         required_cols = ["categoria_de_producto", "cantidad_de_venta", "region_de_venta"]
-        dataframe = self.spark.read.parquet(self.path).select(required_cols)
-        logger.info("Lectura terminada.")
-        self.data = dataframe
-        dataframe.show()
-        dataframe.cache()
-        return dataframe
+        df = self.spark.read.parquet(self.path).select(required_cols)
+        logger.info("Reading completed")
+        self.data = df
+        df.cache()
+        return df
 
     def process(self, data: DataFrame) -> None:
-        logger.info("Procesando información...")
+        logger.info("Processing information...")
         df_grouped_by_category = data.groupBy("categoria_de_producto")
         total_sales_by_category = df_grouped_by_category.agg(functions.sum("cantidad_de_venta").alias("venta_total"))
         df_grouped_by_region = data.groupBy("region_de_venta")
         average_sales_by_region = df_grouped_by_region.agg(functions.mean("cantidad_de_venta").alias("venta_promedio"))
-        logger.info("Información procesada.")
-        logger.info(f"Total de ventas por categoría de producto:\n{total_sales_by_category}")
-        logger.info(f"Promedio de ventas por región:\n{average_sales_by_region}")
+        logger.info("Information processed")
+        logger.info(f"Total sales by product category:\n{total_sales_by_category}")
+        logger.info(f"Average sales by region:\n{average_sales_by_region}")
 
     def cleanup(self) -> None:
         if self.data is not None:
