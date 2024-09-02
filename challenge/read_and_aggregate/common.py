@@ -18,8 +18,8 @@ def execution_time(fn: Callable[[], T]) -> tuple[float, T]:
 class Processor:
     def __init__(self, path: str) -> None:
         self.path = path
-        self.read_time = float
-        self.process_time = float
+        self.read_time = 0.0
+        self.process_time = 0.0
 
     def run(self) -> None:
         self.read_time, data = execution_time(self.read)

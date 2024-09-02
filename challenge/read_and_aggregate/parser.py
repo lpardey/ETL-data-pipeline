@@ -8,9 +8,9 @@ class Config(BaseModel):
 
 
 def get_parser() -> argparse.ArgumentParser:
-    description = "Script para leer y hacer consultar de archivos en Google Cloud Storage"
-    parser = argparse.ArgumentParser(prog="Lectura y consulta", description=description)
-    parser.add_argument("path", type=str, help="Ruta de archivos en GSC")
+    description = "Script to read and query files in Google Cloud Storage"
+    parser = argparse.ArgumentParser(prog="File Reader and Query Tool", description=description)
+    parser.add_argument("path", type=str, help="Path to the files in Google Cloud Storage")
     return parser
 
 
