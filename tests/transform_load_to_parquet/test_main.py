@@ -2,11 +2,11 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from challenge.transform_load_to_parquet.main import main
+from scripts.transform_load_to_parquet.main import main
 
 
-@patch("challenge.transform_load_to_parquet.main.process_using_polars")
-@patch("challenge.transform_load_to_parquet.main.process_using_pyarrow")
+@patch("scripts.transform_load_to_parquet.main.process_using_polars")
+@patch("scripts.transform_load_to_parquet.main.process_using_pyarrow")
 def test_main_success(m_process_using_pyarrow: Mock, m_process_using_polars: Mock, argv: list[str]):
     main(argv)
 
@@ -24,8 +24,8 @@ def test_main_success(m_process_using_pyarrow: Mock, m_process_using_polars: Moc
         pytest.param(Exception, id="General exception"),
     ],
 )
-@patch("challenge.transform_load_to_parquet.main.process_using_polars")
-@patch("challenge.transform_load_to_parquet.main.process_using_pyarrow")
+@patch("scripts.transform_load_to_parquet.main.process_using_polars")
+@patch("scripts.transform_load_to_parquet.main.process_using_pyarrow")
 def test_main_fail(m_process_using_pyarrow: Mock, m_process_using_polars: Mock, side_effect, argv):
     if "-e" in argv:
         m_process_using_pyarrow.side_effect = side_effect

@@ -1,8 +1,8 @@
 [project]
-name = "celes-challenge"
+name = "ETL-Data-Pipeline"
 version = "0.1.0"
-description = "Data Engineer Challenge"
-requires-python = "==3.11.0"
+description = "ETL-Data-Pipeline"
+requires-python = "==3.12.0"
 dependencies = [
     "google-cloud-storage",
     "numpy",
@@ -20,7 +20,7 @@ dependencies = [
 dev = ["mypy", "pandas-stubs", "pyarrow-stubs", "pip-tools", "pytest", "ruff"]
 
 [project.urls]
-Repository = "https://github.com/lpardey/celes-challenge"
+Repository = "https://github.com/lpardey/ETL-data-pipeline"
 
 [tool.ruff]
 line-length = 119

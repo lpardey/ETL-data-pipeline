@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from challenge.dataset_preparation.main import Config
+from scripts.dataset_preparation.main import Config
 
 
 @pytest.fixture

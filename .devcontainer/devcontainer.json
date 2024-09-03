@@ -1,5 +1,5 @@
 {
-	"name": "Celes Challenge",
+	"name": "ETL Data Pipeline",
 	"dockerComposeFile": [
 		"../compose.yaml",
 		"compose.yaml"

@@ -4,8 +4,8 @@ import pytest
 from google.cloud.exceptions import exceptions
 from google.cloud.storage import Bucket, Client
 
-from challenge.upload_to_google_cloud.main import get_or_create_bucket, main, transfer_manager, upload_files_to_gcs
-from challenge.upload_to_google_cloud.parser import Config
+from scripts.upload_to_google_cloud.main import get_or_create_bucket, main, transfer_manager, upload_files_to_gcs
+from scripts.upload_to_google_cloud.parser import Config
 
 
 def test_get_or_create_bucket_existing(mock_client: Client, mock_bucket: Bucket):
@@ -70,8 +70,8 @@ def test_upload_files_to_gcs_multiple_files(
         pytest.param(Exception, upload_files_to_gcs, id="Unexpected error"),
     ],
 )
-@patch("challenge.upload_to_google_cloud.main.get_or_create_bucket")
-@patch("challenge.upload_to_google_cloud.main.upload_files_to_gcs")
+@patch("scripts.upload_to_google_cloud.main.get_or_create_bucket")
+@patch("scripts.upload_to_google_cloud.main.upload_files_to_gcs")
 def test_upload_files_to_gcs_fail(
     m_upload_files_to_gcs: Mock, m_get_or_create_bucket: Mock, expected_side_effect, func, argv, mock_bucket
 ):
