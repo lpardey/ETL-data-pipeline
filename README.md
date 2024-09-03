@@ -1,90 +1,84 @@
-# Celes Challenge
+# ETL Data Pipeline
 
-Este repositorio contiene la solución a la prueba técnica para el equipo de Data Engineers en Celes.  
-La prueba técnica se compone de cinco partes cuyo objetivo es demostrar las habilidades específicas en el manejo y procesamiento de datos a gran escala utilizando Python y Google Cloud Platform.
+ETL pipeline that includes the generation of a synthetic dataset (10M records), transforming and loading the dataset to Parquet format both locally and to Google Cloud Storage, as well as reading and querying it using using Pandas, Polars, PySpark, or Dask. The pipeline is designed to handle large volumes of data, it employs multiprocessing for efficient dataset generation, and includes tests implemented with Pytest.
 
-## Inicio
-El proyecto tiene toda la configuración necesaria para funcionar directamente en vscode + devcontainers.  
-Para ello, primero es necesario guardar un archivo de credenciales `credentials.json` en el directorio raíz del repositorio.  
-Una vez hecho esto, se pueden seguir los pasos habituales para construir la imagen de docker para devcontainer y ejecutar los scripts según se indica más abajo.
+Considering the dataset generated, a benchmark module was implemented to compare the performance of Pandas, Polars, PySpark and Dask in terms of their reading and processing times.
 
-En la carpeta `resources` hay unas [credenciales](./resources/read_only_credentials.json) dedicadas para este proceso de selección, con acceso de sólo lectura al bucket. Para poder ejecutar al completo todos los scripts, sería recomendable crear una cuenta de prueba y dar acceso completo a un bucket dedicado.
 
-## Contenido
+## Setup
+The project includes all the necessary configurations to run directly in VSCode + devcontainers.
+To do this, you first need to save a `credentials.json` file in the root directory of the repository.
+Then, create a `.env` file in the root directory with the following environment variables:
+- GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+- JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
-1. [Parte 1: Preparación de Datos Sintéticos](#parte-1-preparación-de-datos-sintéticos)
-2. [Parte 2: Carga y Transformación de Datos](#parte-2-carga-y-transformación-de-datos)
-3. [Parte 3: Almacenamiento en Google Cloud Storage](#parte-3-almacenamiento-en-google-cloud-storage)
-4. [Parte 4: Lectura y Agregación de Datos](#parte-4-lectura-y-agregación-de-datos)
-5. [Parte 5: Documentación y Arquitectura](#parte-5-documentación-y-arquitectura)
-6. [Conclusiones](#conclusiones)
+These variables are essential for configuring credentials and access paths to GCP services, and for the correct functioning of Pyspark.
+Finally, follow the usual steps to build the Docker image for the devcontainer and run the scripts as described below.
 
-## Parte 1: Preparación de Datos Sintéticos
+In the `resources` folder, you can find a [credentials](./resources/read_only_credentials.json) file with read-only access to the bucket. To fully execute all the scripts, it is recommended to create a GCP test account and grant full access to a dedicated bucket.
 
-En esta etapa, se generó un dataset sintético de 10 millones de registros. Los datos incluyen los siguientes campos: id_cliente, fecha_de_transacción, cantidad_de_venta, categoria_de_producto y region_de_venta.
 
-Se utilizan las librerías `numpy` y `pandas` para facilitar la generación y manejo de los datos. Dada la cantidad de registros a producir, se optó por separar su generación en lotes de 1 millón de registros. Cada lote se almacena en un DataFrame de pandas. Una vez generados todos los lotes, los DataFrames se concatenan en un único DataFrame final, que luego se guarda en un archivo CSV. La configuración del programa se maneja a través de una clase Config que permite definir parámetros esenciales como el número de registros, el tamaño de los lotes, y las categorías de datos. 
+## Table of Contents
 
-## Parte 2: Carga y Transformación de Datos
+1. [Dataset Preparation](#dataset-preparation)
+2. [Transform and Load to Parquet](#transform-and-load-to-parquet)
+3. [Upload to Google Cloud Storage](#upload-to-google-cloud-storage)
+4. [Read and Aggregate](#read-and-aggregate)
+5. [Benchmark](#benchmark)
 
-Se desarrolló un script para leer los datos generados desde archivos planos (CSV) y transformarlos al formato Parquet. Para este proceso, se utilizó `pyarrow` para el tratamiento general del archivo. El script permite especificar varios parámetros a través de argumentos de línea de comandos, tales como el archivo de entrada, el destino de salida, las columnas de partición, y si se debe forzar la sobreescritura de archivos existentes.
 
-Ejemplo de uso:
+## Dataset Preparation
+
+This script generates a synthetic dataset of 10 million records. The data includes the following fields: client_id, transaction_date, sales_amount, product_category, and sales_region.
+
+The `NumPy` and `Polars` libraries are used to facilitate data generation and handling. Due to the large number of records, the generation process is divided into batches of 1 million records. Each batch is stored in a Polars DataFrame, which is generated in parallel using a `ProcessPoolExecutor`. This approach optimizes the script's efficiency and resource usage.
+
+The program configuration is managed through a Config class, which allows defining essential parameters, such as the number of records, batch size, number of workers, random seed, output path for the CSV file, and logging level.
+
+Usage:
 ```
-# ejecutando desde challenge/
-python -m transform_load_to_parquet.main.py mi_dataset.csv -o mi_parquet_output -p region_de_venta -f
-```
-
-## Parte 3: Almacenamiento en Google Cloud Storage
-
-Se implementó un script que permite la carga de archivos en formato Parquet a un bucket en Google Cloud Storage (GCS). Para esto, se configuró una cuenta en Google Cloud Platform y se utilizó la librería `google-cloud-storage` para subir los archivos al bucket. El script permite la creación automática del bucket si este no existe, y, de acuerdo con el contenido del directorio de entrada, gestiona la carga de un archivo único o múltiples archivos de manera concurrente.
-
-Ejemplo de uso:
-```
-# ejecutando desde challenge/
-python -m upload_to_google_cloud.main mi_parquet_output -n mi_bucket -w 8
+python -m scripts.dataset_preparation.main
 ```
 
-## Parte 4: Lectura y Agregación de Datos
+## Transform and Load to Parquet
 
-En esta sección se implementaron tres scripts para leer los archivos Parquet almacenados en GCS y realizar operaciones de ordenamiento y agregación de datos, como sumas totales por categoría de producto y promedios de ventas por región. [`Pandas`](./challenge/read_and_aggregate/main_pandas.py), [`Dask`](./challenge/read_and_aggregate/main_dask.py) y [`Pyspark`](./challenge/read_and_aggregate/main_pyspark.py) fueron la librerías escogidas para cada implementación.
+This script transforms plain text files into Parquet files, with optional features such as partitioning and error handling. When error handling is not required, `Polars` is utilized to read the input file, process it, and output it as a Parquet file. On the other hand, when error handling is enabled, `PyArrow` is employed to read the input file, capture any invalid rows, save them to a quarantine file, and then generate the output Parquet file.
 
-Ejemplo de uso:
+The script uses the argparse library to define various command-line arguments, allowing users to specify input and output paths, partition columns, error-handling options, and logging levels.
+
+Usage:
 ```
-# ejecutando desde challenge/ usando pandas
-python -m read_and_aggregate.main_pandas gcs://celes_single
+python -m scripts.transform_load_to_parquet.main my_dataset.csv my_parquet.parquet
 ```
 
-### Archivo único
-![Archivo único](./resources/single.png) 
+## Upload to Google Cloud Storage
 
-### Archivo particionado
-![Archivo particionado](./resources/partition.png)
+This script uploads Parquet files to Google Cloud Storage using the google-cloud-storage library. It automatically creates a bucket if the one provided doesn't already exist. Depending on the files of the input directory, the script handles the upload of either a single file or multiple files concurrently.
 
-A simple vista la implementación con pandas es superior en todos los aspectos. Considerando que el tamaño de la fuente de datos es pequeño (105.6 MB para el archivo único y 120 MB para el archivo particionado), se podría decir que este resultado se debe a que pandas es eficiente en el manejo de conjuntos de datos que caben en la memoria del sistema. Por otro lado, aunque pyspark es óptimo para el procesamiento distribuido de grandes volúmenes de datos, el tamaño de la fuente de datos no es suficientemente grande para justificar el costo de inicialización y administración de una sesión de Spark, lo que puede resultar en tiempos más largos comparados con pandas. Finalmente, a pesar de que Dask es una extensión de pandas diseñada para operaciones paralelas y en entornos de memoria limitada, introduce una sobrecarga en la administración de tareas paralelas.
+Usage:
+```
+python -m scripts.upload_to_google_cloud.main my_dir/ my_bucket
+```
 
-En conclusión, para la manipulación de un conjundo de grandes vólumenes de datos, pyspark debería ser una de las opciones a utilizar. Por otra parte, con datasets que caben en memoria el uso de pandas es la mejor opción.
+## Read and Aggregate
 
-## Parte 5: Documentación y Arquitectura
+For this seccion four scripts where implemented to read the Parquet file stored on GSC and doing aggregations such as getting the totals sales by category and the average sales by region. [`Pandas`](./scripts/read_and_aggregate/main_pandas.py), [`Dask`](./scripts/read_and_aggregate/main_dask.py), [`Pyspark`](./scripts/read_and_aggregate/main_pyspark.py) and [`Polars`](./scripts/read_and_aggregate/main_polars.py) where the libraries used on each implementation.
 
-Se diseñó una mini arquitectura y un diagrama explicativo para ilustrar cómo los servicios de GCP se integran para completar la tarea.
+Usage:
+```
+python -m scripts.read_and_aggregate.main_polars gs://single_file/
+```
 
-### Diagrama de Arquitectura
+## Benchmark
 
-![Diagrama de Arquitectura](/resources/Mini%20arquitectura%20GCP.png)
+An object-oriented inheritance pattern was designed to facilitate the collection of results between the main modules, using the `time.perf_counter()` function to capture the measurements. The following images generated with `Matplotlib` show the measurement results:
 
-Este diseño de arquitectura utiliza componentes disponibles en GCP para gestionar grandes volúmenes de datos. En las secciones anteriores de la prueba, la información se genera como un dataset que se transforma a formato parquet, para  luego, a través de scripts con diferentes librerías (pandas, pyarrow, pyspark y dask), gestionar la transformación y consulta, y su almacenamiento en GCS. En un caso de uso más realista la fuente de datos sería un stream de eventos proveniente del backend de la aplicación (datos de ventas en tiempo real), aunque también se podrían cargar datos en batch (en este caso se asume desde GCS). 
+### Single Parquet file
+![Single file](./resources/single.png) 
 
-Para procesar estos orígenes de datos se utilizaría Dataflow con un pipeline para los datos en streaming y otro pipeline para los datos en batch. El primero, consumiría el stream de datos en tiempo real agregando múltiples eventos en un mismo batch, con el fin de reducir el número de llamadas a BigQuery. El segundo comprobaría periodicamente si hay archivos nuevos en el bucket de GCS, procesando los últimos archivos añadidos.
+### Parquet files (partitions)
+![Partition files](./resources/partition.png)
 
-En ambos casos, se escriben los datos validados y procesados a una tabla en BigQuery, que actuaría como datawarehouse, permitiendo la lectura y agregación de datos de forma eficiente.
+At first glance, the Polars implementation is superior in every aspect. Considering the data source size (74.42 MB for the single Parquet file and 70.87 MB for the partitions, each being around 11.80 MB), one could argue that handling files that can be stored in system memory is efficiently done with Pandas or Polars. On the other hand, while PySpark is optimized to handle large distributed datasets, the data source size in this benchmark is not large enough to justify the initialization and management of a Spark session, which leads to longer processing times compared to Pandas and Polars. Finally, even though Dask is a Pandas extension designed for parallel operations and limited memory environments, it introduces overhead in managing parallel tasks.
 
-Finalmente, los resultados se consultan desde alguna herramienta que permita su análisis y visualización, en este caso Looker Studio.
-
-### Seguridad
-
-Para asegurar la arquitectura propuesta, se consideraron las siguientes políticas de seguridad:
-
-- **IAM Roles**: Asignación de roles de acceso mínimo necesario para los servicios.
-- **Buckets Privados**: Restricción de acceso público a los buckets de almacenamiento.
-- **Cifrado de Datos**: Uso de claves de cifrado gestionadas por el cliente para proteger los datos almacenados. Idealmente, los datos, tanto en tránsito como en reposo, deberían estar encriptados.
+In conclusion, for handling large volumes of data, either Polars or PySpark would be a good option, with Polars excelling in single-machine scenarios and PySpark being advantageous in distributed environments. On the other hand, for datasets that fit in memory, using Polars or Pandas is a good choice.

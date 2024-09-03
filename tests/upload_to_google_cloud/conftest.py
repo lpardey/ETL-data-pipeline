@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 from google.cloud.storage import Bucket, Client
 
-from challenge.upload_to_google_cloud.parser import Config
+from scripts.upload_to_google_cloud.parser import Config
 
 
 @pytest.fixture

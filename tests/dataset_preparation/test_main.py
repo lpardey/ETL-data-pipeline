@@ -3,7 +3,7 @@ from unittest.mock import patch
 import polars as pl
 import pytest
 
-from challenge.dataset_preparation.main import FIELDS, Config, main
+from scripts.dataset_preparation.main import FIELDS, Config, main
 from tests.conftest import DATASET
 
 
@@ -20,7 +20,7 @@ def test_main_success(mock_config: Config):
     assert expected_result_df.equals(result_df)
 
 
-@patch("challenge.dataset_preparation.main.write_content", retun_value=Exception("Test Error"))
+@patch("scripts.dataset_preparation.main.write_content", retun_value=Exception("Test Error"))
 def test_main_fail(_, mock_config: Config):
     with pytest.raises(SystemExit) as exc:
         main(mock_config)
